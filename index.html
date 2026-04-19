@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Advanced Target Shooting Game</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial;
+      cursor: crosshair;
+    }
+    #gameArea {
+      width: 600px;
+      height: 400px;
+      border: 2px solid black;
+      margin: 20px auto;
+      position: relative;
+      background-color: #f0f0f0;
+      overflow: hidden;
+    }
+    .target {
+      border-radius: 50%;
+      position: absolute;
+      cursor: pointer;
+    }
+    #info {
+      font-size: 18px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🎯 Advanced Target Game</h1>
+<div id="info">
+  Score: <span id="score">0</span> |
+  Time: <span id="time">30</span>s |
+  Level: <span id="level">1</span>
+</div>
+
+<button onclick="startGame()">Start Game</button>
+
+<div id="gameArea"></div>
+
+<!-- Sound effects -->
+<audio id="hitSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8b0f1d9c7.mp3"></audio>
+<audio id="missSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8cbb1b2d66.mp3"></audio>
+
+<script>
+  let score = 0;
+  let timeLeft = 30;
+  let level = 1;
+  let gameInterval;
+  let targetInterval;
+
+  const gameArea = document.getElementById("gameArea");
+
+  function startGame() {
+    score = 0;
+    timeLeft = 30;
+    level = 1;
+    document.getElementById("score").innerText = score;
+    document.getElementById("time").innerText = timeLeft;
+    document.getElementById("level").innerText = level;
+
+    clearInterval(gameInterval);
+    clearInterval(targetInterval);
+    gameArea.innerHTML = "";
+
+    gameInterval = setInterval(updateTimer, 1000);
+    targetInterval = setInterval(createTarget, 1000);
+  }
+
+  function updateTimer() {
+    timeLeft--;
+    document.getElementById("time").innerText = timeLeft;
+
+    // Increase difficulty every 10 seconds
+    if (timeLeft % 10 === 0) {
+      level++;
+      document.getElementById("level").innerText = level;
+
+      clearInterval(targetInterval);
+      let speed = Math.max(300, 1000 - level * 150);
+      targetInterval = setInterval(createTarget, speed);
+    }
+
+    if (timeLeft <= 0) {
+      clearInterval(gameInterval);
+      clearInterval(targetInterval);
+      alert("Game Over! Final Score: " + score);
+    }
+  }
+
+  function createTarget() {
+    const target = document.createElement("div");
+    target.classList.add("target");
+
+    // Random size (smaller = harder)
+    let size = Math.random() * 30 + 20;
+    target.style.width = size + "px";
+    target.style.height = size + "px";
+
+    // Random position
+    target.style.left = Math.random() * (600 - size) + "px";
+    target.style.top = Math.random() * (400 - size) + "px";
+
+    // Random color
+    target.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+
+    // Click event
+    target.onclick = function(e) {
+      e.stopPropagation();
+      score += Math.round(50 / size); // smaller = more points
+      document.getElementById("score").innerText = score;
+      document.getElementById("hitSound").play();
+      target.remove();
+    };
+
+    gameArea.appendChild(target);
+
+    // Remove if not clicked
+    setTimeout(() => {
+      if (gameArea.contains(target)) {
+        target.remove();
+      }
+    }, 1200);
+  }
+
+  // Miss click detection
+  gameArea.addEventListener("click", function() {
+    document.getElementById("missSound").play();
+  });
+
+</script>
+
+</body>
+</html>
